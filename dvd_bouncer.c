@@ -1,3 +1,4 @@
+#include "linked_list.h"
 #include <SDL2/SDL.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -8,16 +9,23 @@
 #define MAX_VELOCITY 5
 
 #define WHITE 0xffffff
+#define RED 0xff0000
+#define ORANGE 0xfc7f03
+#define YELLOW 0xfce303
+#define GREEN 0x2dfc03
+#define BLUE 0x0328fc
+#define INDIGO 0x0328fc
+#define VIOLET 0xfc03df
 #define BLACK 0x000000
 
 struct Bouncer {
   double velocityX;
   double velocityY;
-  int colour;
+  struct Node *colour;
   SDL_Rect *texture;
 };
 
-double bounceBouncer(double velocity) {
+double changeVelocity(double velocity) {
   if (velocity > 0) {
     velocity = ((double)rand() / RAND_MAX) * MAX_VELOCITY -
                MAX_VELOCITY; // between 0 and -5
@@ -30,23 +38,19 @@ double bounceBouncer(double velocity) {
 
 void moveStar(SDL_Surface *pSurface, struct Bouncer *pBouncer) {
   if (pBouncer->texture->x >= SCREEN_WIDTH || pBouncer->texture->x <= 0) {
-    pBouncer->velocityX = bounceBouncer(pBouncer->velocityX);
+    pBouncer->velocityX = changeVelocity(pBouncer->velocityX);
+    pBouncer->colour = pBouncer->colour->next;
   }
 
   if (pBouncer->texture->y >= SCREEN_HEIGHT || pBouncer->texture->y <= 0) {
-    pBouncer->velocityY = bounceBouncer(pBouncer->velocityY);
+    pBouncer->velocityY = changeVelocity(pBouncer->velocityY);
+    pBouncer->colour = pBouncer->colour->next;
   }
 
   pBouncer->texture->x += pBouncer->velocityX;
   pBouncer->texture->y += pBouncer->velocityY;
 
-  if (pBouncer->colour == WHITE) {
-    pBouncer->colour = 0x000000;
-  }
-
-  pBouncer->colour += 0x000001;
-
-  SDL_FillRect(pSurface, pBouncer->texture, pBouncer->colour);
+  SDL_FillRect(pSurface, pBouncer->texture, pBouncer->colour->data);
 }
 
 void clearScreen(SDL_Surface *pSurface) {
@@ -74,9 +78,17 @@ int main() {
 
   SDL_Rect rect = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 50, 50};
 
+  struct Node *coloursHead = append(NULL, RED);
+  coloursHead = append(coloursHead, ORANGE);
+  coloursHead = append(coloursHead, YELLOW);
+  coloursHead = append(coloursHead, GREEN);
+  coloursHead = append(coloursHead, BLUE);
+  coloursHead = append(coloursHead, INDIGO);
+  coloursHead = append(coloursHead, VIOLET);
+
   struct Bouncer bouncer = {
       (double)rand() / RAND_MAX * 2 * MAX_VELOCITY - MAX_VELOCITY,
-      (double)rand() / RAND_MAX * 2 * MAX_VELOCITY - MAX_VELOCITY, WHITE,
+      (double)rand() / RAND_MAX * 2 * MAX_VELOCITY - MAX_VELOCITY, coloursHead,
       &rect};
 
   SDL_FillRect(pSurface, bouncer.texture, WHITE);
@@ -96,4 +108,6 @@ int main() {
     SDL_UpdateWindowSurface(pWindow);
     SDL_Delay(5);
   }
+
+  freeList(coloursHead);
 }
